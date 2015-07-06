@@ -9,5 +9,5 @@ type Manager struct {
 
 func NewManager() *Manager {
 	m := Manager{make(chan WorkRequest, 10000), make(chan chan WorkRequest, 10000)}
-	return &m;
+	return &m
 }

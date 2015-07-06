@@ -3,17 +3,18 @@ package workers
 import (
 	"fmt"
 	"log"
-	"time"
 	"math"
+	"time"
 	//"sync"
 )
 
 type Dispatcher struct {
-	Id string
-	workers map[int]Worker
-	nbCurrentWorkers int
+	Id                 string
+	workers            map[int]Worker
+	nbCurrentWorkers   int
 	workRequestCounter int
-	manager *Manager
+	manager            *Manager
+	workerHandler      func(worker *Worker, work WorkRequest)
 }
 
 func (d *Dispatcher) GetManager() *Manager {
@@ -22,18 +23,19 @@ func (d *Dispatcher) GetManager() *Manager {
 
 // Start dispatcher for the given manager with nworkers as the initial number of
 // workers
-func (d *Dispatcher) Start(nworkers int, manager *Manager) {
+func (d *Dispatcher) Start(nworkers int, manager *Manager, workerHandler func(worker *Worker, work WorkRequest)) {
 	d.workers = make(map[int]Worker)
 	d.nbCurrentWorkers = nworkers
 	d.workRequestCounter = 0
 	d.manager = manager
+	d.workerHandler = workerHandler
 	tickerCheck := time.NewTicker(5 * time.Second)
-	
+
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		d.createWorker(i + 1, manager.WorkerQueue)
+		d.createWorker(i+1, manager.WorkerQueue)
 	}
-	
+
 	go func() {
 		for {
 			select {
@@ -48,13 +50,13 @@ func (d *Dispatcher) Start(nworkers int, manager *Manager) {
 						log.SetPrefix("[Dispatcher] ")
 						log.Printf("Going to add %v workers", workersToCreate)
 						for i := 0; i < workersToCreate; i++ {
-							d.createWorker(d.nbCurrentWorkers + 1, manager.WorkerQueue)
+							d.createWorker(d.nbCurrentWorkers+1, manager.WorkerQueue)
 						}
 						//log.Printf("%#v", len(workers))
 					} else if d.workRequestCounter < 5 && d.nbCurrentWorkers > nworkers {
 						//log.SetPrefix("[Dispatcher] ")
 						//log.Printf("Going to stop worker %v\n", nbCurrentWorkers)
-						
+
 						// Stop 2 workers a time but do not drop below the initial number of workers
 						d.removeWorker(d.nbCurrentWorkers)
 						if d.nbCurrentWorkers > nworkers {
@@ -69,7 +71,7 @@ func (d *Dispatcher) Start(nworkers int, manager *Manager) {
 					d.workRequestCount("+")
 					worker := <-manager.WorkerQueue
 					worker <- work
-					log.SetPrefix("[Dispatcher] ")					
+					log.SetPrefix("[Dispatcher] ")
 					log.Println("Dispatching work request")
 					d.workRequestCount("-")
 				}()
@@ -93,7 +95,7 @@ func (d *Dispatcher) createWorker(id int, workerQueue chan chan WorkRequest) {
 	d.nbCurrentWorkers = id
 	//fmt.SetPrefix("[Dispatcher] ")
 	fmt.Println("Starting worker", id)
-	worker := NewWorker(id, workerQueue)
+	worker := NewWorker(id, workerQueue, d.workerHandler)
 	worker.Start()
 	d.workers[id] = *worker
 }

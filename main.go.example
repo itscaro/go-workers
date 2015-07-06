@@ -1,16 +1,20 @@
-package workers
+package main
 
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"log"
+	"time"
+	"workers"
 )
 
 var (
 	NWorkers = flag.Int("n", 4, "The number of workers to start")
 	HTTPAddr = flag.String("http", "127.0.0.1:8000", "Address to listen for HTTP requests on")
+	dispatcherWork workers.Dispatcher
+	dispatcherHello workers.Dispatcher
 )
 
 func main() {
@@ -19,17 +23,16 @@ func main() {
 
 	// Start the dispatcher.
 	fmt.Println("Starting the dispatcher")
-	dispatcherWork := Dispatcher{}
-	managerWork := NewManager()
-	dispatcherWork.Start(*NWorkers, managerWork)
+	dispatcherWork = workers.Dispatcher{}
+	dispatcherWork.Start(*NWorkers, workers.NewManager(), workerWorkHandler)
 
-	dispatcherHello := Dispatcher{}
-	managerHello := NewManager()
-	dispatcherHello.Start(*NWorkers, managerHello)
+	dispatcherHello = workers.Dispatcher{}
+	dispatcherHello.Start(*NWorkers, workers.NewManager(), workerHelloHandler)
 
 	// Register our collector as an HTTP handler function.
 	fmt.Println("Registering the collector")
-	http.HandleFunc("/work", managerWork.Work)
+	http.HandleFunc("/work", managerWork)
+	http.HandleFunc("/hello", managerHello)
 
 	// Start the HTTP server!
 	fmt.Println("HTTP server listening on", *HTTPAddr)

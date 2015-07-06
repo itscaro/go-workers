@@ -1,12 +1,25 @@
-package workers
+package main
 
 import (
+	"workers"
 	"log"
 	"net/http"
 	"time"
 )
 
-func (m *Manager) Work(w http.ResponseWriter, r *http.Request) {
+func workerWorkHandler(worker *workers.Worker, work workers.WorkRequest) {
+	time.Sleep(work.Delay)
+	fmt.Printf("Hello, %s!\n", work.Name)
+}
+
+func workerHelloHandler(worker *workers.Worker, work workers.WorkRequest) {
+
+}
+
+func managerHello(w http.ResponseWriter, r *http.Request) {
+}
+
+func managerWork(w http.ResponseWriter, r *http.Request) {
 	// Make sure we can only be called with an HTTP POST request.
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
@@ -37,10 +50,10 @@ func (m *Manager) Work(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Now, we take the delay, and the person's name, and make a WorkRequest out of them.
-	work := WorkRequest{Name: name, Delay: delay}
+	work := workers.WorkRequest{Name: name, Delay: delay}
 
 	// Push the work onto the queue.
-	m.WorkQueue <- work
+	dispatcherWork.GetManager().WorkQueue <- work
 	log.SetPrefix("[Manager] ")
 	log.Println("Work request queued")
 
