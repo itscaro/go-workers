@@ -15,7 +15,9 @@ type Dispatcher struct {
 	workRequestCounter int
 }
 
-func (d *Dispatcher) StartDispatcher(nworkers int, manager *Manager) {
+// Start dispatcher for the given manager with nworkers as the initial number of
+// workers
+func (d *Dispatcher) Start(nworkers int, manager *Manager) {
 	d.workers = make(map[int]Worker)
 	d.nbCurrentWorkers = nworkers
 	d.workRequestCounter = 0

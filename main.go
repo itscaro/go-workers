@@ -21,11 +21,11 @@ func main() {
 	fmt.Println("Starting the dispatcher")
 	dispatcherWork := Dispatcher{}
 	managerWork := NewManager()
-	dispatcherWork.StartDispatcher(*NWorkers, managerWork)
+	dispatcherWork.Start(*NWorkers, managerWork)
 
 	dispatcherHello := Dispatcher{}
 	managerHello := NewManager()
-	dispatcherHello.StartDispatcher(*NWorkers, managerHello)
+	dispatcherHello.Start(*NWorkers, managerHello)
 
 	// Register our collector as an HTTP handler function.
 	fmt.Println("Registering the collector")
