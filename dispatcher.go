@@ -13,6 +13,11 @@ type Dispatcher struct {
 	workers map[int]Worker
 	nbCurrentWorkers int
 	workRequestCounter int
+	manager *Manager
+}
+
+func (d *Dispatcher) GetManager() *Manager {
+	return d.manager
 }
 
 // Start dispatcher for the given manager with nworkers as the initial number of
@@ -21,6 +26,7 @@ func (d *Dispatcher) Start(nworkers int, manager *Manager) {
 	d.workers = make(map[int]Worker)
 	d.nbCurrentWorkers = nworkers
 	d.workRequestCounter = 0
+	d.manager = manager
 	tickerCheck := time.NewTicker(5 * time.Second)
 	
 	// Now, create all of our workers.
