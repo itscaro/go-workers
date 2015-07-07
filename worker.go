@@ -1,7 +1,6 @@
 package workers
 
 import (
-	"fmt"
 	"log"
 	"runtime"
 	"strconv"
@@ -37,30 +36,29 @@ func (w *Worker) Start() {
 	go func() {
 		for {
 			if receivedQuitSignal == false {
-				// Add ourselves into the worker queue.
+				// Add ourselves into the worker queue if not going to stop
 				w.WorkerQueue <- w.Work
 			}
 
 			select {
 			case work := <-w.Work:
-				// Receive a work request.
+				// Receive a work request
 				log.SetPrefix("[Worker " + strconv.Itoa(w.ID) + "] ")
-				log.Printf("Received work request, delaying for %f seconds\n", work.Delay.Seconds())
+				log.Printf("Received work request")
 
 				w.Handler(w, work)
 
 				if receivedQuitSignal != false {
+					log.SetPrefix("[Worker " + strconv.Itoa(w.ID) + "] ")
 					log.Printf("Terminating\n")
 					return
 				}
 			case <-w.QuitChan:
-				// We have been asked to stop.
+				// Flag the worker to stop after next request
+				// This is in order to remove the worker itself from WorkerQueue
 				log.SetPrefix("[Worker " + strconv.Itoa(w.ID) + "] ")
 				log.Printf("Going to stop after processing another work request\n")
-				//log.Printf("%v", w)
-				//runtime.GC()
 				receivedQuitSignal = true
-				//return
 			}
 		}
 	}()
@@ -79,6 +77,5 @@ func (w *Worker) Stop() {
 }
 
 func finalizer(w *Worker) {
-	fmt.Printf("Destroy worker %v\n", w.ID)
-	w.ID = 0
+	log.Printf("Destroy worker %v\n", w.ID)
 }
