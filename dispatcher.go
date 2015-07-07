@@ -75,6 +75,7 @@ func (d *Dispatcher) Start(nworkers int, workerHandler func(worker *Worker, work
 	}()
 }
 
+// createWorker with its ID and the WorkerQueue
 func (d *Dispatcher) createWorker(id int, workerQueue chan chan WorkRequest) {
 	log.SetPrefix("[Dispatcher] ")
 	log.Println("Starting worker", id)
@@ -83,6 +84,7 @@ func (d *Dispatcher) createWorker(id int, workerQueue chan chan WorkRequest) {
 	d.workers[id] = worker
 }
 
+// removeWorker with its ID
 func (d *Dispatcher) removeWorker(id int) {
 	w := d.workers[id]
 	w.Stop()

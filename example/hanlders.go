@@ -10,7 +10,11 @@ import (
 
 func workerWorkHandler(worker *workers.Worker, work workers.WorkRequest) {
 	time.Sleep(work.Delay)
-	fmt.Printf("Hello, %s!\n", work.Name)
+
+	switch work.Name {
+		default:
+			fmt.Printf("Hello, %s!\n", work.Name)
+	}	
 }
 
 func workerHelloHandler(worker *workers.Worker, work workers.WorkRequest) {
