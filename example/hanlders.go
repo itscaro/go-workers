@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 func workerWorkHandler(worker *workers.Worker, work workers.WorkRequest) {
@@ -16,10 +17,10 @@ func workerHelloHandler(worker *workers.Worker, work workers.WorkRequest) {
 
 }
 
-func managerHello(w http.ResponseWriter, r *http.Request) {
+func hanlderHello(w http.ResponseWriter, r *http.Request) {
 }
 
-func managerWork(w http.ResponseWriter, r *http.Request) {
+func hanlderWork(w http.ResponseWriter, r *http.Request) {
 	// Make sure we can only be called with an HTTP POST request.
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
@@ -53,8 +54,8 @@ func managerWork(w http.ResponseWriter, r *http.Request) {
 	work := workers.WorkRequest{Name: name, Delay: delay}
 
 	// Push the work onto the queue.
-	dispatcherWork.GetManager().WorkQueue <- work
-	log.SetPrefix("[Manager] ")
+	dispatcherWork.WorkQueue <- work
+	log.SetPrefix("[Handler] ")
 	log.Println("Work request queued")
 
 	// And let the user know their work request was created.

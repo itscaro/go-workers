@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"time"
 	"workers"
 )
 
@@ -24,18 +23,18 @@ func main() {
 	// Start the dispatcher.
 	fmt.Println("Starting the dispatcher")
 	dispatcherWork = workers.Dispatcher{}
-	dispatcherWork.Start(*NWorkers, workers.NewManager(), workerWorkHandler)
+	dispatcherWork.Start(*NWorkers, workerWorkHandler)
 
 	dispatcherHello = workers.Dispatcher{}
-	dispatcherHello.Start(*NWorkers, workers.NewManager(), workerHelloHandler)
+	dispatcherHello.Start(*NWorkers, workerHelloHandler)
 
 	// Register our collector as an HTTP handler function.
-	fmt.Println("Registering the collector")
-	http.HandleFunc("/work", managerWork)
-	http.HandleFunc("/hello", managerHello)
+	log.Println("Registering the hanlders")
+	http.HandleFunc("/work", hanlderWork)
+	http.HandleFunc("/hello", hanlderHello)
 
 	// Start the HTTP server!
-	fmt.Println("HTTP server listening on", *HTTPAddr)
+	log.Println("HTTP server listening on", *HTTPAddr)
 	if err := http.ListenAndServe(*HTTPAddr, nil); err != nil {
 		fmt.Println(err.Error())
 	}
