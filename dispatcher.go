@@ -9,7 +9,7 @@ import (
 type Dispatcher struct {
 	Id                 string
 	// Map used to stored created workers
-	workers            map[int]Worker
+	workers            map[int]*Worker
 	nbRequests			int
 	workerHandler      func(worker *Worker, work WorkRequest)
 	// A buffered channel that we can send work requests on.
@@ -23,7 +23,7 @@ type Dispatcher struct {
 func (d *Dispatcher) Start(nworkers int, workerHandler func(worker *Worker, work WorkRequest)) {
 	d.workerHandler = workerHandler
 	d.nbRequests = 0
-	d.workers = make(map[int]Worker)
+	d.workers = make(map[int]*Worker)
 	d.WorkQueue = make(chan WorkRequest, 10000)
 	d.WorkerQueue = make(chan chan WorkRequest, 10000)
 
@@ -47,13 +47,13 @@ func (d *Dispatcher) Start(nworkers int, workerHandler func(worker *Worker, work
 					)
 
 					if counter > 10 {
+						// A simple mechanism of auto-spawning
 						workersToCreate := int(math.Ceil(float64(counter / 10)))
 						log.SetPrefix("[Dispatcher] ")
 						log.Printf("Going to add %v workers", workersToCreate)
 						for i := 0; i < workersToCreate; i++ {
 							d.createWorker(len(d.workers)+1, d.WorkerQueue)
 						}
-						//log.Printf("%#v", len(workers))
 					} else if counter < 5 && len(d.workers) > nworkers {
 						// Stop 2 workers a time but do not drop below the initial number of workers
 						d.removeWorker(len(d.workers))
@@ -63,6 +63,7 @@ func (d *Dispatcher) Start(nworkers int, workerHandler func(worker *Worker, work
 					}
 				}()
 			case work := <-d.WorkQueue:
+				// Blocking process here, in order to benefit the buffered channel
 				// Count the requests received	
 				d.nbRequests++
 				log.SetPrefix("[Dispatcher] ")
@@ -79,7 +80,7 @@ func (d *Dispatcher) createWorker(id int, workerQueue chan chan WorkRequest) {
 	log.Println("Starting worker", id)
 	worker := NewWorker(id, workerQueue, d.workerHandler)
 	worker.Start()
-	d.workers[id] = *worker
+	d.workers[id] = worker
 }
 
 func (d *Dispatcher) removeWorker(id int) {
