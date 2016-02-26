@@ -1,7 +1,7 @@
 package main
 
 import (
-	"workers"
+	workers "github.com/go-workers"
 	"log"
 	"net/http"
 	"time"

@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"workers"
+	workers "github.com/go-workers"
 )
 
 var (
